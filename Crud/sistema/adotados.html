@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/5.0.0-alpha2/css/bootstrap.min.css">
+    <title>Cachorros Para Adotar - Adotados</title>
+    <style>
+        body{
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            background-color: #D291BC;
+        }
+    </style>
+</head>
+<body>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            carregarCard()
+        });
+        async function carregarCard(){
+            const token = localStorage.getItem('token')
+            const email = (JSON.parse(atob(token.split(".")[1]))).email
+            try{
+                const resp = await fetch(`http://localhost:3000/meuscachorrosAdotados/${email}`)
+                const cachorros = await resp.json()
+
+                const body = document.querySelector("body")
+                if(cachorros.length > 0){
+                    cachorros.forEach(cachorro => {
+                        body.innerHTML+= `
+                        <div class="card" style="width: 18rem;">
+                            <div class="card-body  d-flex flex-column">
+                                <h5 class="card-title">${cachorro.nome}</h5>
+                                <ul class="list-group">
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    Idade
+                                    <span class="badge bg-primary rounded-pill">${cachorro.idade}</span>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    Sexo
+                                    <span class="badge bg-primary rounded-pill">${cachorro.sexo}</span>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    Raça
+                                    <span class="badge bg-primary rounded-pill">${cachorro.raca}</span>
+                                    </li>
+                                    <li class="list-group-item d-flex flex-column justify-content-between align-items-center">
+                                        <strong>Descrição:</strong><br>
+                                        <p>${cachorro.descricao}</p>
+                                    </li>
+                                </ul>
+                                <button type="button" class="btn btn-secondary mb-2 mt-2" onclick="excluir('${cachorro.nome}')">Exclua</button>
+                            </div>
+                        </div>
+                        `
+                    });
+                }else{
+                    body.innerHTML = "<h1>Você não adotou nenhum cachorro</h1>"
+                }
+            }catch(error){
+                alert(error.mensagem)
+            }
+        }
+        async function excluir(nomecachorro){
+            console.log(nomecachorro)
+            try{
+                await fetch("http://localhost:3000/deletarAdocao", {
+                    method: 'DELETE',
+                    headers: {
+                    'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({nomecachorro})
+                })
+                const resp = await fetch("http://localhost:3000/deletarcachorro", {
+                    method: 'DELETE',
+                    headers: {
+                    'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({nomecachorro})
+                })
+
+                const men = await resp.json()
+                alert(men.mensagem)
+                carregarCard()
+            }catch(error){
+                alert(error)
+            }
+            
+        }
+    </script>
+</body>
+</html>
